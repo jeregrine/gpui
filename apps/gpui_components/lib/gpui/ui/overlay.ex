@@ -22,6 +22,7 @@ defmodule GPUI.UI.Overlay do
     tooltip_options: :ui_tooltip,
     dialog_options: :ui_dialog,
     dropdown_menu_options: :ui_dropdown_menu,
+    context_menu_options: :ui_context_menu,
     popover_options: :ui_popover
   )
 
@@ -163,6 +164,45 @@ defmodule GPUI.UI.Overlay do
         |> Map.put(:id, id)
         |> Map.to_list(),
       children: children
+    }
+  end
+
+  @doc """
+  Builds a context menu around its content, with one or more `:item` slots.
+
+  A secondary click (right click, or Control-click) on the content opens the
+  items as a popup menu at the pointer, and `phx-select` receives the chosen
+  item's value. Items take the same attributes as `dropdown_menu/1` items.
+  Primary clicks still reach the content.
+
+  #{ComponentsSchema.component_options_doc(:ui_context_menu)}
+  """
+  @spec context_menu(context_menu_options()) :: Element.t()
+  def context_menu(assigns) when is_map(assigns) do
+    assigns =
+      assigns
+      |> ComponentsSchema.apply_defaults(:ui_context_menu)
+      |> ComponentsSchema.validate_component_assigns!(:ui_context_menu, [:item])
+
+    items = Map.get(assigns, :item, [])
+    if items == [], do: raise(ArgumentError, "context_menu requires at least one :item slot")
+
+    values = Enum.map(items, &dropdown_menu_item_value!/1)
+
+    if Enum.uniq(values) != values do
+      raise ArgumentError, "context_menu item values must be unique"
+    end
+
+    id = component_id!(assigns, :ui_context_menu)
+
+    %Element{
+      type: :ui_context_menu,
+      attrs:
+        assigns
+        |> Map.drop([:children, :item])
+        |> Map.put(:id, id)
+        |> Map.to_list(),
+      children: Map.get(assigns, :children, []) ++ Enum.map(items, &dropdown_menu_item!/1)
     }
   end
 
