@@ -6,6 +6,9 @@
   raw modifier-bearing keys, committed text/IME, multiline clipboard paste,
   native selection/copy, scrollback, and measured cell/viewport events.
   No terminal parser, PTY, SSH client, or command-line editor is embedded.
+- Dialog Enter no longer requests automatic closure; content handles submission
+  and the app controls `open`. Explicit focus requests made while closing a
+  dialog take precedence over restoring its previous focus.
 
 ### Changed
 

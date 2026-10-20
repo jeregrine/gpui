@@ -78,8 +78,11 @@ defmodule GPUI.UI.Overlay do
 
   A non-empty `title` supplies the dialog heading and names its optional
   trigger. Changes to `open` are emitted through `phx-change`. The native dialog traps
-  focus while open and restores the previous focus when it closes. Escape and
-  overlay clicks request closure when enabled.
+  focus while open and restores the previous focus when it closes, unless another
+  element requests focus in the same render. Escape and overlay clicks request
+  closure when enabled. Enter belongs to the content (for example, an input's
+  `phx-submit`); it does not request closure. Set `open: false` after a successful
+  submission to close the dialog.
 
   Set `show_title: false` for search-first dialogs without a visible heading.
   `title` still names the dialog contract and optional trigger. `margin_top`
