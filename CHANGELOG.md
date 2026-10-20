@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add `GPUI.Terminal.surface/1`: an application-owned fixed-cell grid with
+  raw modifier-bearing keys, committed text/IME, multiline clipboard paste,
+  native selection/copy, scrollback, and measured cell/viewport events.
+  No terminal parser, PTY, SSH client, or command-line editor is embedded.
+
 ### Changed
 
 - Parse `~GPUI` templates with GPUI's own parser and drop the

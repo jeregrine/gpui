@@ -360,6 +360,7 @@ defmodule GPUI.Components.Schema.Declarations do
       events: [
         change: :"phx-change",
         submit: :"phx-submit",
+        keydown: :"phx-keydown",
         focus: :"phx-focus",
         blur: :"phx-blur"
       ],
