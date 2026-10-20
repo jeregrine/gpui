@@ -2,24 +2,25 @@
 
 mod atoms {
     rustler::atoms! {
-        __extension_version__ = "__extension_version__", __type__ = "__type__",
-        accessibility_checked = "accessibility_checked", accessibility_description =
-        "accessibility_description", accessibility_disabled = "accessibility_disabled",
-        accessibility_expanded = "accessibility_expanded", accessibility_label =
-        "accessibility_label", accessibility_orientation = "accessibility_orientation",
-        accessibility_role = "accessibility_role", accessibility_selected =
-        "accessibility_selected", accessibility_value = "accessibility_value", active =
-        "active", align = "align", align_items = "align_items", alignment = "alignment",
-        anchor = "anchor", appearance = "appearance", attrs = "attrs", auto_grow =
-        "auto_grow", background = "background", block_projections = "block_projections",
-        blur = "blur", border_color = "border_color", border_radius = "border_radius",
-        border_width = "border_width", bordered = "bordered", bottom = "bottom", bounds =
-        "bounds", branch = "branch", buffer = "buffer", cancelled = "cancelled",
-        cell_change = "cell_change", change = "change", checked = "checked", children =
-        "children", cleanable = "cleanable", click = "click", clipboard = "clipboard",
-        clipboard_text = "clipboard_text", clipboard_write = "clipboard_write", closable
-        = "closable", close_button = "close_button", collapsed = "collapsed", collapsible
-        = "collapsible", color = "color", columns = "columns", command = "command",
+        __extension_version__ = "__extension_version__", __type__ = "__type__", accepts =
+        "accepts", accessibility_checked = "accessibility_checked",
+        accessibility_description = "accessibility_description", accessibility_disabled =
+        "accessibility_disabled", accessibility_expanded = "accessibility_expanded",
+        accessibility_label = "accessibility_label", accessibility_orientation =
+        "accessibility_orientation", accessibility_role = "accessibility_role",
+        accessibility_selected = "accessibility_selected", accessibility_value =
+        "accessibility_value", active = "active", align = "align", align_items =
+        "align_items", alignment = "alignment", anchor = "anchor", appearance =
+        "appearance", attrs = "attrs", auto_grow = "auto_grow", background =
+        "background", block_projections = "block_projections", blur = "blur",
+        border_color = "border_color", border_radius = "border_radius", border_width =
+        "border_width", bordered = "bordered", bottom = "bottom", bounds = "bounds",
+        branch = "branch", buffer = "buffer", cancelled = "cancelled", cell_change =
+        "cell_change", change = "change", checked = "checked", children = "children",
+        cleanable = "cleanable", click = "click", clipboard = "clipboard", clipboard_text
+        = "clipboard_text", clipboard_write = "clipboard_write", closable = "closable",
+        close_button = "close_button", collapsed = "collapsed", collapsible =
+        "collapsible", color = "color", columns = "columns", command = "command",
         commands = "commands", compact = "compact", content = "content", copy = "copy",
         cursor = "cursor", cursor_column = "cursor_column", cursor_row = "cursor_row",
         cursor_visible = "cursor_visible", dark = "dark", dashed = "dashed", data =
