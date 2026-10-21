@@ -170,9 +170,11 @@ defmodule GPUI.UI.Overlay do
   @doc """
   Builds a context menu around its content, with one or more `:item` slots.
 
-  A secondary click (right click, or Control-click) on the content opens the
-  items as a popup menu at the pointer, and `phx-select` receives the chosen
-  item's value. Items take the same attributes as `dropdown_menu/1` items.
+  A right click on the content opens a compact menu of the items at the
+  pointer, and `phx-select` receives the chosen item's value. The pointer and
+  the arrow keys move one highlight; Enter chooses, and Escape or a click
+  outside closes the menu. Items take the same attributes as `dropdown_menu/1`
+  items: disabled items can't be chosen, and checked items show a check mark.
   Primary clicks still reach the content.
 
   #{ComponentsSchema.component_options_doc(:ui_context_menu)}

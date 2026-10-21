@@ -3,9 +3,9 @@ pub(crate) mod accordion;
 #[cfg(feature = "components")]
 pub(crate) mod code_viewer;
 #[cfg(feature = "components")]
-pub(crate) mod controls;
-#[cfg(feature = "components")]
 pub(crate) mod context_menu;
+#[cfg(feature = "components")]
+pub(crate) mod controls;
 #[cfg(feature = "components")]
 pub(crate) mod data_table;
 #[cfg(feature = "components")]

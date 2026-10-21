@@ -6,9 +6,9 @@
   raw modifier-bearing keys, committed text/IME, multiline clipboard paste,
   native selection/copy, scrollback, and measured cell/viewport events.
   No terminal parser, PTY, SSH client, or command-line editor is embedded.
-- Add `GPUI.UI.Overlay.context_menu/1`: a secondary click on its content opens
-  its `:item` slots as a popup menu at the pointer, and `phx-select` receives
-  the chosen value.
+- Add `GPUI.UI.Overlay.context_menu/1`: a right click on its content opens its
+  `:item` slots as a compact menu at the pointer (styled after Zed's context
+  menus, with keyboard navigation), and `phx-select` receives the chosen value.
 - Dialog Enter no longer requests automatic closure; content handles submission
   and the app controls `open`. Explicit focus requests made while closing a
   dialog take precedence over restoring its previous focus.
