@@ -127,6 +127,43 @@ defmodule GPUI.Codegen.Native.Style.Definitions do
     end
   end
 
+  # Names the element as a hover group for `group_hover_visible` descendants.
+  defp render_statement(%{field: field, render: :group}) do
+    render_option_value_case(field, fn ->
+      quote(do: assign!(element, element.group(value)))
+    end)
+  end
+
+  defp render_statement(%{field: field, render: :group_hover_visible}) do
+    render_option_value_case(field, fn ->
+      quote do
+        assign!(element, element.group_hover(value, fn refinement -> refinement.visible() end))
+      end
+    end)
+  end
+
+  defp render_statement(%{field: field, render: :group_hover_invisible}) do
+    render_option_value_case(field, fn ->
+      quote do
+        assign!(
+          element,
+          element.group_hover(value, fn refinement -> refinement.invisible() end)
+        )
+      end
+    end)
+  end
+
+  defp render_statement(%{field: field, render: {:hover, method, :color}}) do
+    render_option_value_case(field, fn ->
+      quote do
+        assign!(
+          element,
+          element.hover(fn refinement -> refinement.unquote(method)(GPUI.rgba(value)) end)
+        )
+      end
+    end)
+  end
+
   defp render_statement(%{field: field, render: {:enum_methods, values}}) do
     render_option_case(field, values, fn method ->
       quote(do: assign!(element, element.unquote(method)()))

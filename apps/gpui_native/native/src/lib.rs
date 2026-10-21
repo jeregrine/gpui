@@ -5,7 +5,7 @@ use rustler::{Binary, Encoder, Env, NifMap, NifResult, ResourceArc, Term};
 #[cfg(feature = "real-gpui")]
 use futures::{channel::mpsc, StreamExt};
 #[cfg(feature = "real-gpui")]
-use gpui::Styled;
+use gpui::{InteractiveElement, Styled};
 #[cfg(feature = "real-gpui")]
 use std::{
     collections::{HashMap, HashSet},

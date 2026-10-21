@@ -270,6 +270,31 @@ defmodule GPUI.Template.ComponentsTest do
     end
   end
 
+  test "menu buttons compile their content as the button and items after it" do
+    assert %GPUI.Element{
+             type: :ui_menu_button,
+             attrs: attrs,
+             children: [
+               "⋯",
+               %GPUI.Element{type: :ui_dropdown_menu_item, attrs: rename},
+               %GPUI.Element{type: :ui_dropdown_menu_item}
+             ]
+           } =
+             ~GPUI"""
+             <Overlay.menu_button id="more" label="More" anchor="top_right" phx-select="row_action">⋯<:item value="rename">Rename</:item><:item value="remove">Remove</:item></Overlay.menu_button>
+             """
+
+    assert attrs[:id] == "more"
+    assert attrs[:label] == "More"
+    assert attrs[:anchor] == "top_right"
+    assert attrs[:"phx-select"] == "row_action"
+    assert rename[:value] == "rename" and rename[:label] == "Rename"
+
+    assert_raise ArgumentError, ~r/at least one :item/, fn ->
+      Overlay.menu_button(%{id: "more", label: "More", children: []})
+    end
+  end
+
   test "popover uses explicit trigger and content slots" do
     assert %GPUI.Element{
              type: :ui_popover,

@@ -34,6 +34,11 @@ pub(crate) fn style_to_core(wire: StyleAttrs) -> gpui_core::Style {
     style.font_weight = wire.font_weight;
     style.line_height = wire.line_height;
     style.opacity = wire.opacity;
+    style.visibility = wire.visibility;
+    style.group = wire.group;
+    style.hover_background = wire.hover_background;
+    style.group_hover_visible = wire.group_hover_visible;
+    style.group_hover_invisible = wire.group_hover_invisible;
     style.gap = wire.gap;
     style.padding = wire.padding;
     style.padding_x = wire.padding_x;

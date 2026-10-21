@@ -30,6 +30,7 @@ pub enum GeneratedComponentKind {
     DialogContentComponent,
     DropdownMenuComponent,
     ContextMenuComponent,
+    MenuButtonComponent,
     DropdownMenuTriggerComponent,
     DropdownMenuItemComponent,
     CheckboxComponent,
@@ -1019,6 +1020,11 @@ pub(crate) struct StyleAttrs {
     pub(crate) font_weight: Option<String>,
     pub(crate) line_height: Option<f32>,
     pub(crate) opacity: Option<f32>,
+    pub(crate) visibility: Option<String>,
+    pub(crate) group: Option<String>,
+    pub(crate) hover_background: Option<u32>,
+    pub(crate) group_hover_visible: Option<String>,
+    pub(crate) group_hover_invisible: Option<String>,
     pub(crate) gap: Option<f32>,
     pub(crate) padding: Option<f32>,
     pub(crate) padding_x: Option<f32>,
@@ -1243,6 +1249,36 @@ pub(crate) fn apply_generated_style_attr<'a>(
             let value = number_value(term);
             let valid = value.is_some();
             attrs.opacity = value;
+            valid
+        }
+        value if value == atoms::visibility() => {
+            let value = atom_string(term);
+            let valid = value.is_some();
+            attrs.visibility = value;
+            valid
+        }
+        value if value == atoms::group() => {
+            let value = atom_string(term);
+            let valid = value.is_some();
+            attrs.group = value;
+            valid
+        }
+        value if value == atoms::hover_background() => {
+            let value = color_value(term);
+            let valid = value.is_some();
+            attrs.hover_background = value;
+            valid
+        }
+        value if value == atoms::group_hover_visible() => {
+            let value = atom_string(term);
+            let valid = value.is_some();
+            attrs.group_hover_visible = value;
+            valid
+        }
+        value if value == atoms::group_hover_invisible() => {
+            let value = atom_string(term);
+            let valid = value.is_some();
+            attrs.group_hover_invisible = value;
             valid
         }
         value if value == atoms::gap() => {
@@ -1669,6 +1705,39 @@ pub(crate) fn apply_generated_render_styles(
     match style.opacity {
         Some(value) => {
             element = element.opacity(value);
+        }
+        _ => {}
+    };
+    match style.visibility.as_deref() {
+        Some("visible") => {
+            element = element.visible();
+        }
+        Some("hidden") => {
+            element = element.invisible();
+        }
+        _ => {}
+    };
+    match style.group {
+        Some(value) => {
+            element = element.group(value);
+        }
+        _ => {}
+    };
+    match style.hover_background {
+        Some(value) => {
+            element = element.hover(|refinement| refinement.bg(gpui::rgba(value)));
+        }
+        _ => {}
+    };
+    match style.group_hover_visible {
+        Some(value) => {
+            element = element.group_hover(value, |refinement| refinement.visible());
+        }
+        _ => {}
+    };
+    match style.group_hover_invisible {
+        Some(value) => {
+            element = element.group_hover(value, |refinement| refinement.invisible());
         }
         _ => {}
     };
@@ -2841,6 +2910,39 @@ pub(crate) fn decode_generated_context_menu_component<'a>(
     Ok(ContextMenuComponentNode {
         style: decode_style(term)?,
         id: component_required_string_attr(term, atoms::id())?,
+        children: decode_children(term)?,
+        select: component_string_attr(term, atoms::phx_select())?,
+    })
+}
+#[derive(Clone, Debug)]
+#[cfg(feature = "real-gpui")]
+#[allow(dead_code)]
+pub(crate) struct MenuButtonComponentNode {
+    pub(crate) style: StyleAttrs,
+    pub(crate) id: String,
+    pub(crate) label: String,
+    pub(crate) anchor: Option<String>,
+    pub(crate) children: Vec<ElementNode>,
+    pub(crate) select: Option<String>,
+}
+#[cfg(feature = "real-gpui")]
+#[allow(clippy::redundant_field_names)]
+#[allow(clippy::useless_vec)]
+pub(crate) fn decode_generated_menu_button_component<'a>(
+    term: Term<'a>,
+) -> NifResult<MenuButtonComponentNode> {
+    Ok(MenuButtonComponentNode {
+        style: decode_style(term)?,
+        id: component_required_string_attr(term, atoms::id())?,
+        label: component_required_string_attr(term, atoms::label())?,
+        anchor: match component_enum_attr(
+            term,
+            atoms::anchor(),
+            &vec!["top_left", "top_right"],
+        )? {
+            Some(value) => Some(value),
+            None => Some("top_left".to_string()),
+        },
         children: decode_children(term)?,
         select: component_string_attr(term, atoms::phx_select())?,
     })
@@ -4031,6 +4133,7 @@ pub(crate) enum ElementNode {
     DialogContentComponent(DialogContentComponentNode),
     DropdownMenuComponent(DropdownMenuComponentNode),
     ContextMenuComponent(ContextMenuComponentNode),
+    MenuButtonComponent(MenuButtonComponentNode),
     DropdownMenuTriggerComponent(DropdownMenuTriggerComponentNode),
     DropdownMenuItemComponent(DropdownMenuItemComponentNode),
     CheckboxComponent(CheckboxComponentNode),
@@ -4101,6 +4204,7 @@ pub enum GeneratedElementTag {
     UiDialogContent,
     UiDropdownMenu,
     UiContextMenu,
+    UiMenuButton,
     UiDropdownMenuTrigger,
     UiDropdownMenuItem,
     UiCheckbox,
@@ -4170,6 +4274,7 @@ pub fn decode_generated_element_tag(tag: &str) -> GeneratedElementTag {
         "ui_dialog_content" => GeneratedElementTag::UiDialogContent,
         "ui_dropdown_menu" => GeneratedElementTag::UiDropdownMenu,
         "ui_context_menu" => GeneratedElementTag::UiContextMenu,
+        "ui_menu_button" => GeneratedElementTag::UiMenuButton,
         "ui_dropdown_menu_trigger" => GeneratedElementTag::UiDropdownMenuTrigger,
         "ui_dropdown_menu_item" => GeneratedElementTag::UiDropdownMenuItem,
         "ui_checkbox" => GeneratedElementTag::UiCheckbox,
@@ -4258,6 +4363,7 @@ pub fn generated_component_kind(tag: GeneratedElementTag) -> GeneratedComponentK
         GeneratedElementTag::UiContextMenu => {
             GeneratedComponentKind::ContextMenuComponent
         }
+        GeneratedElementTag::UiMenuButton => GeneratedComponentKind::MenuButtonComponent,
         GeneratedElementTag::UiDropdownMenuTrigger => {
             GeneratedComponentKind::DropdownMenuTriggerComponent
         }
@@ -4414,6 +4520,10 @@ pub(crate) fn decode_generated_element_node<'a>(
         GeneratedComponentKind::ContextMenuComponent => {
             decode_generated_context_menu_component(term)
                 .map(|node| ElementNode::ContextMenuComponent(node))
+        }
+        GeneratedComponentKind::MenuButtonComponent => {
+            decode_generated_menu_button_component(term)
+                .map(|node| ElementNode::MenuButtonComponent(node))
         }
         GeneratedComponentKind::DropdownMenuTriggerComponent => {
             decode_generated_dropdown_menu_trigger_component(term)
@@ -4615,6 +4725,9 @@ pub(crate) fn render_generated_component_node(
         }
         ElementNode::ContextMenuComponent(node) => {
             element::component::context_menu::render(node, context)
+        }
+        ElementNode::MenuButtonComponent(node) => {
+            element::component::menu_button::render(node, context)
         }
         ElementNode::DropdownMenuTriggerComponent(node) => {
             element::component::overlay::render_dropdown_menu_trigger(node, context)

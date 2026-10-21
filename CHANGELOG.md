@@ -9,6 +9,14 @@
 - Add `GPUI.UI.Overlay.context_menu/1`: a right click on its content opens its
   `:item` slots as a compact menu at the pointer (styled after Zed's context
   menus, with keyboard navigation), and `phx-select` receives the chosen value.
+- Add `GPUI.UI.Overlay.menu_button/1`: its content is a button that opens the
+  same menu below it. The press doesn't reach enclosing click handlers, and
+  the button stays visible while its menu is open.
+- Add hover styles: `hover:bg-*` (`hover_background`), `visible`/`invisible`
+  (`visibility`), and hover groups, where an element marked `group` or
+  `group/name` (`group`) shows or hides descendants marked
+  `group-hover[/name]:visible` or `:invisible` (`group_hover_visible`,
+  `group_hover_invisible`) while it's hovered.
 - Dialog Enter no longer requests automatic closure; content handles submission
   and the app controls `open`. Explicit focus requests made while closing a
   dialog take precedence over restoring its previous focus.

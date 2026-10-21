@@ -17,6 +17,11 @@ defmodule GPUI.Schema.Style do
 
   @type render ::
           :flex_if_true
+          | :truncate_if_true
+          | :group
+          | :group_hover_visible
+          | :group_hover_invisible
+          | {:hover, atom(), :color}
           | {:enum_methods, [{String.t(), atom()}]}
           | {:enum_values, atom(), [{String.t(), [atom()]}]}
           | {:option_method, atom(),

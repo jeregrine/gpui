@@ -23,6 +23,7 @@ defmodule GPUI.UI.Overlay do
     dialog_options: :ui_dialog,
     dropdown_menu_options: :ui_dropdown_menu,
     context_menu_options: :ui_context_menu,
+    menu_button_options: :ui_menu_button,
     popover_options: :ui_popover
   )
 
@@ -199,6 +200,48 @@ defmodule GPUI.UI.Overlay do
 
     %Element{
       type: :ui_context_menu,
+      attrs:
+        assigns
+        |> Map.drop([:children, :item])
+        |> Map.put(:id, id)
+        |> Map.to_list(),
+      children: Map.get(assigns, :children, []) ++ Enum.map(items, &dropdown_menu_item!/1)
+    }
+  end
+
+  @doc """
+  Builds a button that opens a menu of its `:item` slots.
+
+  The content is the button. Pressing it opens the same compact menu as
+  `context_menu/1`, below the button: `anchor` picks which corner of the menu
+  lines up with it (`"top_left"` or `"top_right"`). `phx-select` receives the
+  chosen item's value, and `label` names the button for accessibility. The
+  press doesn't reach enclosing click handlers, so the button can sit inside a
+  clickable row. While its menu is open the button stays visible, even when
+  its style hides it until a group is hovered.
+
+  #{ComponentsSchema.component_options_doc(:ui_menu_button)}
+  """
+  @spec menu_button(menu_button_options()) :: Element.t()
+  def menu_button(assigns) when is_map(assigns) do
+    assigns =
+      assigns
+      |> ComponentsSchema.apply_defaults(:ui_menu_button)
+      |> ComponentsSchema.validate_component_assigns!(:ui_menu_button, [:item])
+
+    items = Map.get(assigns, :item, [])
+    if items == [], do: raise(ArgumentError, "menu_button requires at least one :item slot")
+
+    values = Enum.map(items, &dropdown_menu_item_value!/1)
+
+    if Enum.uniq(values) != values do
+      raise ArgumentError, "menu_button item values must be unique"
+    end
+
+    id = component_id!(assigns, :ui_menu_button)
+
+    %Element{
+      type: :ui_menu_button,
       attrs:
         assigns
         |> Map.drop([:children, :item])

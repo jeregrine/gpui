@@ -977,6 +977,11 @@ pub(crate) struct StyleAttrs {
     pub(crate) font_weight: Option<String>,
     pub(crate) line_height: Option<f32>,
     pub(crate) opacity: Option<f32>,
+    pub(crate) visibility: Option<String>,
+    pub(crate) group: Option<String>,
+    pub(crate) hover_background: Option<u32>,
+    pub(crate) group_hover_visible: Option<String>,
+    pub(crate) group_hover_invisible: Option<String>,
     pub(crate) gap: Option<f32>,
     pub(crate) padding: Option<f32>,
     pub(crate) padding_x: Option<f32>,
@@ -1201,6 +1206,36 @@ pub(crate) fn apply_generated_style_attr<'a>(
             let value = number_value(term);
             let valid = value.is_some();
             attrs.opacity = value;
+            valid
+        }
+        value if value == atoms::visibility() => {
+            let value = atom_string(term);
+            let valid = value.is_some();
+            attrs.visibility = value;
+            valid
+        }
+        value if value == atoms::group() => {
+            let value = atom_string(term);
+            let valid = value.is_some();
+            attrs.group = value;
+            valid
+        }
+        value if value == atoms::hover_background() => {
+            let value = color_value(term);
+            let valid = value.is_some();
+            attrs.hover_background = value;
+            valid
+        }
+        value if value == atoms::group_hover_visible() => {
+            let value = atom_string(term);
+            let valid = value.is_some();
+            attrs.group_hover_visible = value;
+            valid
+        }
+        value if value == atoms::group_hover_invisible() => {
+            let value = atom_string(term);
+            let valid = value.is_some();
+            attrs.group_hover_invisible = value;
             valid
         }
         value if value == atoms::gap() => {
@@ -1627,6 +1662,39 @@ pub(crate) fn apply_generated_render_styles(
     match style.opacity {
         Some(value) => {
             element = element.opacity(value);
+        }
+        _ => {}
+    };
+    match style.visibility.as_deref() {
+        Some("visible") => {
+            element = element.visible();
+        }
+        Some("hidden") => {
+            element = element.invisible();
+        }
+        _ => {}
+    };
+    match style.group {
+        Some(value) => {
+            element = element.group(value);
+        }
+        _ => {}
+    };
+    match style.hover_background {
+        Some(value) => {
+            element = element.hover(|refinement| refinement.bg(gpui::rgba(value)));
+        }
+        _ => {}
+    };
+    match style.group_hover_visible {
+        Some(value) => {
+            element = element.group_hover(value, |refinement| refinement.visible());
+        }
+        _ => {}
+    };
+    match style.group_hover_invisible {
+        Some(value) => {
+            element = element.group_hover(value, |refinement| refinement.invisible());
         }
         _ => {}
     };

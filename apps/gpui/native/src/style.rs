@@ -25,7 +25,7 @@ impl From<Length> for gpui::DefiniteLength {
 
 mod generated {
     use super::{gpui, Style};
-    use gpui::Styled;
+    use gpui::{InteractiveElement, Styled};
 
     include!("generated/style_application.rs");
 }

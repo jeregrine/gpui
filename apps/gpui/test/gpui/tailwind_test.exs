@@ -279,7 +279,27 @@ defmodule GPUI.TailwindTest do
   test "preserves unsupported classes exactly" do
     assert %{
              style: [display: :flex],
-             unknown: ["hover:bg-blue-500", "w-[calc(100%-1rem)]", "mx-auto"]
-           } = GPUI.Tailwind.normalize("flex hover:bg-blue-500 w-[calc(100%-1rem)] mx-auto")
+             unknown: ["focus:bg-blue-500", "w-[calc(100%-1rem)]", "mx-auto"]
+           } = GPUI.Tailwind.normalize("flex focus:bg-blue-500 w-[calc(100%-1rem)] mx-auto")
+  end
+
+  test "normalizes hover backgrounds, visibility, and hover groups" do
+    assert %{style: style, unknown: []} =
+             GPUI.Tailwind.normalize(
+               "group/row hover:bg-[#ff0000] invisible group-hover/row:visible"
+             )
+
+    assert style[:group] == :row
+    assert style[:hover_background] == {:rgb, 0xFF0000}
+    assert style[:visibility] == :hidden
+    assert style[:group_hover_visible] == :row
+
+    assert %{style: [group: :group, group_hover_invisible: :group], unknown: []} =
+             GPUI.Tailwind.normalize("group group-hover:invisible")
+
+    assert %{style: [visibility: :visible], unknown: []} = GPUI.Tailwind.normalize("visible")
+
+    assert %{unknown: ["group/Row", "group-hover/row:flex"]} =
+             GPUI.Tailwind.normalize("group/Row group-hover/row:flex")
   end
 end

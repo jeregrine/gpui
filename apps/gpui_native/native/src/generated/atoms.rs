@@ -35,9 +35,11 @@ mod atoms {
         "follow", follow_request = "follow_request", font_family = "font_family",
         font_size = "font_size", font_weight = "font_weight", format = "format", gap =
         "gap", geometry = "geometry", geometry_ranges = "geometry_ranges", gpui_component
-        = "gpui_component", hard_tabs = "hard_tabs", header_height = "header_height",
-        headless = "headless", height = "height", hit_test = "hit_test", hoverable =
-        "hoverable", id = "id", indeterminate = "indeterminate", inline_projections =
+        = "gpui_component", group = "group", group_hover_invisible =
+        "group_hover_invisible", group_hover_visible = "group_hover_visible", hard_tabs =
+        "hard_tabs", header_height = "header_height", headless = "headless", height =
+        "height", hit_test = "hit_test", hover_background = "hover_background", hoverable
+        = "hoverable", id = "id", indeterminate = "indeterminate", inline_projections =
         "inline_projections", inset = "inset", inset_x = "inset_x", inset_y = "inset_y",
         invalid_position = "invalid_position", invalid_range = "invalid_range",
         invalid_selection = "invalid_selection", italic = "italic", item_height =
@@ -105,9 +107,9 @@ mod atoms {
         toggle = "toggle", top = "top", total_count = "total_count", transaction =
         "transaction", transaction_conflict = "transaction_conflict", truncate =
         "truncate", type_atom = "type", value = "value", vanilla = "vanilla", variant =
-        "variant", viewport = "viewport", white_space = "white_space", width = "width",
-        window_blur = "window_blur", window_close_request = "window_close_request",
-        window_closed = "window_closed", window_control = "window_control", window_focus
-        = "window_focus", window_id = "window_id"
+        "variant", viewport = "viewport", visibility = "visibility", white_space =
+        "white_space", width = "width", window_blur = "window_blur", window_close_request
+        = "window_close_request", window_closed = "window_closed", window_control =
+        "window_control", window_focus = "window_focus", window_id = "window_id"
     }
 }

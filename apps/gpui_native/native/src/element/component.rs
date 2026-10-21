@@ -19,6 +19,8 @@ pub(crate) mod edge_fade;
 pub(crate) mod form;
 pub(crate) mod frost;
 #[cfg(feature = "components")]
+pub(crate) mod menu_button;
+#[cfg(feature = "components")]
 pub(crate) mod overlay;
 pub(crate) mod paint;
 #[cfg(feature = "components")]

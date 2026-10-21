@@ -112,6 +112,28 @@ defmodule GPUI.Tailwind do
   end
 
   defp normalize_class("relative", acc), do: put_style(acc, :position, :relative)
+  defp normalize_class("visible", acc), do: put_style(acc, :visibility, :visible)
+  defp normalize_class("invisible", acc), do: put_style(acc, :visibility, :hidden)
+  defp normalize_class("group", acc), do: put_style(acc, :group, :group)
+  defp normalize_class("group/" <> name = class, acc), do: group(acc, :group, name, class)
+
+  defp normalize_class("group-hover:visible", acc),
+    do: put_style(acc, :group_hover_visible, :group)
+
+  defp normalize_class("group-hover:invisible", acc),
+    do: put_style(acc, :group_hover_invisible, :group)
+
+  defp normalize_class("group-hover/" <> rest = class, acc) do
+    case String.split(rest, ":", parts: 2) do
+      [name, "visible"] -> group(acc, :group_hover_visible, name, class)
+      [name, "invisible"] -> group(acc, :group_hover_invisible, name, class)
+      _other -> unknown(acc, class)
+    end
+  end
+
+  defp normalize_class("hover:bg-" <> color, acc),
+    do: color(acc, :hover_background, color, "hover:bg-")
+
   defp normalize_class("absolute", acc), do: put_style(acc, :position, :absolute)
   defp normalize_class("flex-1", acc), do: put_style(acc, :flex, :one)
   defp normalize_class("flex-auto", acc), do: put_style(acc, :flex, :auto)
@@ -279,6 +301,13 @@ defmodule GPUI.Tailwind do
       {opacity, ""} when opacity in 0..100 -> put_style(acc, :opacity, opacity / 100)
       _other -> unknown(acc, "opacity-#{value}")
     end
+  end
+
+  # Group names become atoms, so only short identifiers are accepted.
+  defp group(acc, key, name, class) do
+    if String.match?(name, ~r/\A[a-z][a-z0-9_-]{0,31}\z/),
+      do: put_style(acc, key, String.to_atom(name)),
+      else: unknown(acc, class)
   end
 
   defp color(acc, key, value, prefix) do

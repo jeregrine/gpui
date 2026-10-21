@@ -10,86 +10,165 @@ pub(crate) fn render(
     context: &mut ElementRenderContext<'_, '_>,
 ) -> gpui::AnyElement {
     use crate::element::apply_generated_render_styles;
-    use crate::{push_event, ElementNode, EventValue, InputKind, NativeEvent};
-    use gpui::prelude::FluentBuilder;
     use gpui::{
-        anchored, deferred, div, hsla, point, px, BoxShadow, InteractiveElement, IntoElement,
-        MouseButton, ParentElement, Role, StatefulInteractiveElement, Styled,
+        anchored, deferred, div, px, InteractiveElement, IntoElement, MouseButton, ParentElement,
     };
-    use gpui_component::{ActiveTheme, Icon, IconName};
-    use std::rc::Rc;
 
-    let mut items = Vec::new();
-    let mut content = Vec::new();
-    for child in node.children {
-        match child {
-            ElementNode::DropdownMenuItemComponent(item) => items.push(item),
-            other => content.push(other.render(context)),
-        }
-    }
-
-    let menu =
-        context
-            .window
-            .use_keyed_state(format!("{}-context-menu", node.id), context.cx, |_, cx| {
-                MenuState {
-                    position: None,
-                    highlighted: None,
-                    focus: cx.focus_handle(),
-                }
-            });
-    let MenuState {
-        position,
-        highlighted,
-        focus,
-    } = menu.read(context.cx).clone();
-
-    let runtime = context.runtime.clone();
-    let window_id = context.window_id;
-    let select = node.select;
-    let values = items
-        .iter()
-        .map(|item| item.value.clone())
-        .collect::<Vec<_>>();
-    let enabled = items.iter().map(|item| !item.disabled).collect::<Vec<_>>();
-
-    // Choosing closes the menu before reporting the value.
-    let choose: Rc<dyn Fn(usize, &mut gpui::App)> = {
-        let menu = menu.clone();
-        Rc::new(move |index, cx| {
-            menu.update(cx, |menu, cx| menu.close(cx));
-            if let Some(event) = select.clone() {
-                let _ = push_event(
-                    &runtime,
-                    NativeEvent::Input {
-                        kind: InputKind::Select,
-                        window_id,
-                        event,
-                        value: Some(EventValue::String(values[index].clone())),
-                    },
-                );
-            }
-        })
-    };
+    let (items, content) = split_items(node.children, context);
+    let menu = Menu::new(&node.id, items, node.select, context);
+    let state = menu.state.clone();
 
     let mut element = apply_generated_render_styles(div(), node.style)
         .id(node.id.clone())
         .children(content)
-        .on_mouse_down(MouseButton::Right, {
-            let menu = menu.clone();
-            let focus = focus.clone();
-            move |event, window, cx| {
-                menu.update(cx, |menu, cx| {
-                    menu.position = Some(event.position);
-                    menu.highlighted = None;
-                    cx.notify();
-                });
-                focus.focus(window, cx);
-                cx.stop_propagation();
-            }
+        .on_mouse_down(MouseButton::Right, move |event, window, cx| {
+            open(&state, event.position, window, cx);
+            cx.stop_propagation();
         });
 
-    if let Some(position) = position {
+    if let Some(position) = menu.position {
+        element = element.child(
+            deferred(
+                anchored()
+                    .position(position)
+                    .snap_to_window_with_margin(px(8.))
+                    .child(menu.panel(context)),
+            )
+            .with_priority(1),
+        );
+    }
+
+    element.into_any_element()
+}
+
+/// Separates a menu's item slots from the rest of its children, which render
+/// as its content.
+#[cfg(feature = "components")]
+pub(super) fn split_items(
+    children: Vec<crate::ElementNode>,
+    context: &mut ElementRenderContext<'_, '_>,
+) -> (
+    Vec<crate::DropdownMenuItemComponentNode>,
+    Vec<gpui::AnyElement>,
+) {
+    let mut items = Vec::new();
+    let mut content = Vec::new();
+    for child in children {
+        match child {
+            crate::ElementNode::DropdownMenuItemComponent(item) => items.push(item),
+            other => content.push(other.render(context)),
+        }
+    }
+    (items, content)
+}
+
+/// Opens the menu with `position` as its anchor and moves focus into it.
+#[cfg(feature = "components")]
+pub(super) fn open(
+    state: &gpui::Entity<MenuState>,
+    position: gpui::Point<gpui::Pixels>,
+    window: &mut gpui::Window,
+    cx: &mut gpui::App,
+) {
+    let focus = state.update(cx, |menu, cx| {
+        menu.position = Some(position);
+        menu.highlighted = None;
+        menu.closed_at = None;
+        cx.notify();
+        menu.focus.clone()
+    });
+    focus.focus(window, cx);
+}
+
+/// One render's view of a menu: its kept state and the items to show.
+#[cfg(feature = "components")]
+pub(super) struct Menu {
+    pub(super) state: gpui::Entity<MenuState>,
+    pub(super) position: Option<gpui::Point<gpui::Pixels>>,
+    highlighted: Option<usize>,
+    focus: gpui::FocusHandle,
+    items: Vec<crate::DropdownMenuItemComponentNode>,
+    select: Option<String>,
+}
+
+#[cfg(feature = "components")]
+impl Menu {
+    pub(super) fn new(
+        id: &str,
+        items: Vec<crate::DropdownMenuItemComponentNode>,
+        select: Option<String>,
+        context: &mut ElementRenderContext<'_, '_>,
+    ) -> Self {
+        let state = context
+            .window
+            .use_keyed_state(format!("{id}-menu"), context.cx, |_, cx| MenuState {
+                position: None,
+                highlighted: None,
+                focus: cx.focus_handle(),
+                closed_at: None,
+            });
+        let MenuState {
+            position,
+            highlighted,
+            focus,
+            ..
+        } = state.read(context.cx).clone();
+        Menu {
+            state,
+            position,
+            highlighted,
+            focus,
+            items,
+            select,
+        }
+    }
+
+    /// The open menu's panel, positioned by the caller.
+    pub(super) fn panel(self, context: &mut ElementRenderContext<'_, '_>) -> gpui::AnyElement {
+        use crate::{push_event, EventValue, InputKind, NativeEvent};
+        use gpui::prelude::FluentBuilder;
+        use gpui::{
+            div, hsla, point, px, BoxShadow, InteractiveElement, IntoElement, ParentElement, Role,
+            StatefulInteractiveElement, Styled,
+        };
+        use gpui_component::{ActiveTheme, Icon, IconName};
+        use std::rc::Rc;
+
+        let Menu {
+            state: menu,
+            highlighted,
+            focus,
+            items,
+            select,
+            ..
+        } = self;
+        let runtime = context.runtime.clone();
+        let window_id = context.window_id;
+        let values = items
+            .iter()
+            .map(|item| item.value.clone())
+            .collect::<Vec<_>>();
+        let enabled = items.iter().map(|item| !item.disabled).collect::<Vec<_>>();
+
+        // Choosing closes the menu before reporting the value.
+        let choose: Rc<dyn Fn(usize, &mut gpui::App)> = {
+            let menu = menu.clone();
+            Rc::new(move |index, cx| {
+                menu.update(cx, |menu, cx| menu.close(cx));
+                if let Some(event) = select.clone() {
+                    let _ = push_event(
+                        &runtime,
+                        NativeEvent::Input {
+                            kind: InputKind::Select,
+                            window_id,
+                            event,
+                            value: Some(EventValue::String(values[index].clone())),
+                        },
+                    );
+                }
+            })
+        };
+
         let theme = context.cx.theme();
         let highlight = theme.secondary_hover;
         let any_checked = items.iter().any(|item| item.checked);
@@ -135,8 +214,8 @@ pub(crate) fn render(
             })
             .collect::<Vec<_>>();
 
-        let panel = div()
-            .id(format!("{}-context-menu-panel", node.id))
+        div()
+            .id("menu-panel")
             .role(Role::Menu)
             .track_focus(&focus)
             .occlude()
@@ -169,7 +248,12 @@ pub(crate) fn render(
             ])
             .on_mouse_down_out({
                 let menu = menu.clone();
-                move |_event, _window, cx| menu.update(cx, |menu, cx| menu.close(cx))
+                move |event, _window, cx| {
+                    menu.update(cx, |menu, cx| {
+                        menu.closed_at = Some(event.position);
+                        menu.close(cx);
+                    })
+                }
             })
             .on_key_down({
                 let menu = menu.clone();
@@ -195,28 +279,20 @@ pub(crate) fn render(
                     cx.stop_propagation();
                 }
             })
-            .children(rows);
-
-        element = element.child(
-            deferred(
-                anchored()
-                    .position(position)
-                    .snap_to_window_with_margin(px(8.))
-                    .child(panel),
-            )
-            .with_priority(1),
-        );
+            .children(rows)
+            .into_any_element()
     }
-
-    element.into_any_element()
 }
 
 #[cfg(feature = "components")]
 #[derive(Clone)]
-struct MenuState {
+pub(super) struct MenuState {
     position: Option<gpui::Point<gpui::Pixels>>,
     highlighted: Option<usize>,
     focus: gpui::FocusHandle,
+    /// Where the press that last closed the menu from outside landed, so the
+    /// trigger it hit doesn't reopen it.
+    pub(super) closed_at: Option<gpui::Point<gpui::Pixels>>,
 }
 
 #[cfg(feature = "components")]

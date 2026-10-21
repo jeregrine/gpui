@@ -319,6 +319,24 @@ defmodule GPUI.Components.Schema.Declarations do
     },
     %{
       __struct__: GPUI.Schema.Component,
+      attrs: [
+        id: :required_string,
+        label: :required_string,
+        anchor: {:default, {:enum, ["top_left", "top_right"]}, "top_left"}
+      ],
+      children: true,
+      events: [select: :"phx-select"],
+      extension: nil,
+      kind: :menu_button_component,
+      public_hidden_attrs: [],
+      public_required_attrs: [],
+      public_slots: [item: :one_or_more],
+      required_events: [],
+      stateful: false,
+      tag: :ui_menu_button
+    },
+    %{
+      __struct__: GPUI.Schema.Component,
       attrs: [],
       children: true,
       events: [],

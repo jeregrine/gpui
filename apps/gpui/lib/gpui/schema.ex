@@ -237,6 +237,31 @@ defmodule GPUI.Schema do
       type: :number,
       render: {:option_method, :opacity, :f32}
     },
+    %Style{
+      name: :visibility,
+      field: :visibility,
+      type: :atom_string,
+      render: {:enum_methods, [{"visible", :visible}, {"hidden", :invisible}]}
+    },
+    %Style{name: :group, field: :group, type: :atom_string, render: :group},
+    %Style{
+      name: :hover_background,
+      field: :hover_background,
+      type: :color,
+      render: {:hover, :bg, :color}
+    },
+    %Style{
+      name: :group_hover_visible,
+      field: :group_hover_visible,
+      type: :atom_string,
+      render: :group_hover_visible
+    },
+    %Style{
+      name: :group_hover_invisible,
+      field: :group_hover_invisible,
+      type: :atom_string,
+      render: :group_hover_invisible
+    },
     %Style{name: :gap, field: :gap, type: :px, render: {:option_method, :gap, :px}},
     %Style{name: :padding, field: :padding, type: :px, render: {:option_method, :p, :px}},
     %Style{name: :padding_x, field: :padding_x, type: :px, render: {:option_method, :px, :px}},

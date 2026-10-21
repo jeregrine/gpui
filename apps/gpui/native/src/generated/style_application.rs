@@ -277,6 +277,39 @@ pub fn apply(element: gpui::Div, style: Style) -> gpui::Div {
         }
         _ => {}
     };
+    match style.visibility.as_deref() {
+        Some("visible") => {
+            element = element.visible();
+        }
+        Some("hidden") => {
+            element = element.invisible();
+        }
+        _ => {}
+    };
+    match style.group {
+        Some(value) => {
+            element = element.group(value);
+        }
+        _ => {}
+    };
+    match style.hover_background {
+        Some(value) => {
+            element = element.hover(|refinement| refinement.bg(gpui::rgba(value)));
+        }
+        _ => {}
+    };
+    match style.group_hover_visible {
+        Some(value) => {
+            element = element.group_hover(value, |refinement| refinement.visible());
+        }
+        _ => {}
+    };
+    match style.group_hover_invisible {
+        Some(value) => {
+            element = element.group_hover(value, |refinement| refinement.invisible());
+        }
+        _ => {}
+    };
     match style.gap {
         Some(value) => {
             element = element.gap(gpui::px(value));

@@ -94,8 +94,11 @@ pub(crate) fn apply_click_event(
 
         let element = if enabled {
             element
-                .on_click(move |_event, _window, _cx| {
+                // Like phx-click in LiveView, only the innermost clickable
+                // element under the pointer handles the click.
+                .on_click(move |_event, _window, cx| {
                     emit_click_event(&pointer_runtime, window_id, &pointer_event);
+                    cx.stop_propagation();
                 })
                 .on_a11y_action(AccessibleAction::Click, move |_data, _window, _cx| {
                     emit_click_event(&runtime, window_id, &event);
@@ -188,6 +191,7 @@ pub(crate) fn apply_input_events(
 #[cfg(all(test, feature = "real-gpui"))]
 mod tests {
     use super::emit_click_event;
+    use crate::gpui;
     use crate::{event::NativeEvent, runtime::RuntimeState, AccessibilityRole};
     use std::sync::Arc;
 
@@ -224,6 +228,70 @@ mod tests {
         ] {
             assert!(!role.is_activatable());
         }
+    }
+
+    fn clickable(
+        id: &str,
+        width: f32,
+        children: Vec<crate::ElementNode>,
+    ) -> crate::ElementNode {
+        let mut style = crate::StyleAttrs::default();
+        style.width = Some(gpui::px(width).into());
+        style.height = Some(gpui::px(20.0).into());
+        crate::ElementNode::Div(crate::ContainerNode {
+            tag: crate::GeneratedElementTag::Div,
+            style,
+            id: Some(id.to_string()),
+            accessibility: crate::AccessibilitySemantics::default(),
+            children,
+            click: Some(id.to_string()),
+            bounds_change: None,
+            focus_request: 0,
+            focus: None,
+            blur: None,
+            motion_request: 0,
+            motion_duration: 180,
+            motion_delay: 0,
+            motion_easing: "ease_out".to_string(),
+            motion_policy: "respect_system".to_string(),
+            motion_from_opacity: 1.0,
+            motion_from_x: 0.0,
+            motion_from_y: 0.0,
+            window_control: None,
+        })
+    }
+
+    #[gpui::test]
+    fn only_the_innermost_clickable_element_handles_a_click(cx: &mut gpui::TestAppContext) {
+        use gpui::{point, px, size, IntoElement, Modifiers};
+
+        let tree = clickable("outer", 200.0, vec![clickable("inner", 50.0, Vec::new())]);
+        let runtime = Arc::new(RuntimeState::new());
+        let state = Arc::new(crate::WindowState::new(tree, Vec::new()));
+        let runtime_for_view = runtime.clone();
+        let (view, cx) = cx.add_window_view(move |_window, _cx| {
+            crate::ElixirRoot::new(state, runtime_for_view, 7, false, false)
+        });
+        cx.draw(
+            point(px(0.0), px(0.0)),
+            size(px(300.0), px(100.0)),
+            |_window, _cx| view.clone().into_any_element(),
+        );
+
+        cx.simulate_click(point(px(10.0), px(10.0)), Modifiers::default());
+        cx.simulate_click(point(px(100.0), px(10.0)), Modifiers::default());
+
+        let clicked = runtime
+            .events
+            .lock()
+            .expect("event queue")
+            .iter()
+            .filter_map(|event| match event {
+                NativeEvent::Click { event, .. } => Some(event.clone()),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(clicked, vec!["inner", "outer"]);
     }
 
     #[test]
